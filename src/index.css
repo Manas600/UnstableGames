@@ -1,0 +1,247 @@
+/* Batman Themed CSS */
+
+/* Set a brooding font & global rules */
+* {
+  box-sizing: border-box;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #080808;
+  /* Deep black-grey background */
+  color: #c0c0c0;
+  /* Medium-grey text */
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+h1,
+h2,
+h3 {
+  color: #ffffff;
+  /* Brighter white for headers */
+  font-weight: 700;
+  /* Super bold for a strong presence */
+}
+
+/* High-tech glow effect on the main game container */
+.batman-container {
+  text-align: center;
+  width: 90%;
+  max-width: 500px;
+  /* Perfect for mobile play */
+  background-color: #1a1a1a;
+  /* Wayne Tech terminal grey */
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.2),
+    /* Subtle technological cyan glow */
+    0 0 40px rgba(0, 255, 255, 0.1);
+}
+
+/* Specific styling for your inner game/input areas */
+.glass-panel {
+  background-color: rgba(0, 0, 0, 0.5);
+  /* Subtle dark glass look */
+  padding: 30px 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  /* Barely visible line */
+}
+
+/* Style for inputs - sleek & dark */
+input {
+  width: 100%;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.3);
+  /* Dark input background */
+  color: white;
+  font-size: 1.1rem;
+  outline: none;
+  /* Removes the default blue focus box */
+  transition: all 0.2s ease-in-out;
+}
+
+/* Subtle glow effect when you focus on an input */
+input:focus {
+  border-color: rgba(0, 255, 255, 0.5);
+  /* Glowing cyan focus border */
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+/* Placeholders that are subtle but readable */
+input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Button styling - bold, gradient, and bouncy on click */
+button {
+  width: 100%;
+  padding: 15px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(45deg, #00f2fe, #4facfe);
+  /* technological blue gradient */
+  color: #080808;
+  /* Dark text on bright button */
+  box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
+  /* Match button glow */
+  transition: all 0.2s ease-in-out;
+  margin-bottom: 10px;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  /* Lifts slightly on hover */
+  box-shadow: 0 6px 20px rgba(0, 242, 254, 0.5);
+}
+
+button:active {
+  transform: translateY(1px) scale(0.98);
+  /* Depresses on click */
+}
+
+/* Specific button colors (Green for success, red for danger) */
+button.btn-success {
+  background: linear-gradient(45deg, #11998e, #38ef7d);
+  /* Glowing green gradient */
+  box-shadow: 0 4px 15px rgba(56, 239, 125, 0.3);
+}
+
+button.btn-danger {
+  background: linear-gradient(45deg, #ff416c, #ff4b2b);
+  /* Striking red-orange gradient */
+  box-shadow: 0 4px 15px rgba(255, 65, 108, 0.3);
+}
+
+/* Styling for player lists like database entries */
+ul {
+  padding: 0;
+  list-style-type: none;
+}
+
+li {
+  background-color: #121212;
+  /* Very dark grey list items */
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  /* Tiny separators */
+}
+
+/* Small separator line */
+hr {
+  border: none;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.05);
+  margin: 20px 0;
+}
+
+/* THE MASSIVE ANSWER DISPLAY (Reveal phase) */
+.massive-answer {
+  font-size: 4rem;
+  color: #ffeb3b;
+  /* Batman-gadget yellow/gold */
+  margin: 20px 0;
+  word-wrap: break-word;
+  /* Prevents long words from breaking layout */
+}
+
+/* --- MASTER HUB GRID --- */
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 25px;
+  padding: 10px;
+}
+
+.game-card {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 30px 20px;
+  text-decoration: none;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-icon {
+  font-size: 4rem;
+  margin-bottom: 15px;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));
+}
+
+.game-card h2 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  color: #00f2fe;
+}
+
+.game-card p {
+  font-size: 0.95rem;
+  color: #aaa;
+  margin-bottom: 25px;
+}
+
+/* Play Button inside card */
+.play-btn {
+  margin-top: auto;
+  background: linear-gradient(45deg, #11998e, #38ef7d);
+  color: #080808;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  width: 100%;
+  box-shadow: 0 4px 15px rgba(56, 239, 125, 0.2);
+  transition: all 0.2s;
+}
+
+/* Hover Effects for active games */
+.active-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(0, 255, 255, 0.5);
+  box-shadow: 0 10px 30px rgba(0, 255, 255, 0.15);
+}
+
+.active-card:hover .play-btn {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(56, 239, 125, 0.4);
+}
+
+/* Locked Games styling */
+.locked-card {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.locked-card h2 {
+  color: #777;
+}
+
+.locked-btn {
+  margin-top: auto;
+  background: #333;
+  color: #777;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  width: 100%;
+}
