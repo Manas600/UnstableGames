@@ -3,24 +3,24 @@ import { Link } from 'react-router-dom';
 function Home() {
   // A simple array of our games. You can easily add Mafia here later!
   const games = [
-    { 
-      id: 'imposter', 
-      name: 'Who is the Imposter?', 
-      desc: 'Find the liar among you before it is too late.', 
+    {
+      id: 'imposter',
+      name: 'Who is the Imposter?',
+      desc: 'Find the liar among you before it is too late.',
       icon: '🦇',
       active: true
     },
-    { 
-      id: 'mafia', 
-      name: 'Mafia (Coming Soon)', 
-      desc: 'The classic game of deception and survival.', 
+    {
+      id: 'mafia',
+      name: 'Mafia (Coming Soon)',
+      desc: 'The classic game of deception and survival.',
       icon: '🕴️',
-      active: false
+      active: true
     },
-    { 
-      id: 'draw', 
-      name: 'Drawful (Coming Soon)', 
-      desc: 'Terrible drawings, hilarious guesses.', 
+    {
+      id: 'draw',
+      name: 'Drawful (Coming Soon)',
+      desc: 'Terrible drawings, hilarious guesses.',
       icon: '🎨',
       active: false
     }
@@ -30,7 +30,7 @@ function Home() {
     <div className="batman-container" style={{ maxWidth: '800px' }}>
       <h1 style={{ fontSize: '3rem', marginBottom: '10px' }}>Wayne Party Hub</h1>
       <p style={{ marginBottom: '40px', fontSize: '1.2rem' }}>Select a protocol to initiate...</p>
-      
+
       <div className="game-grid">
         {games.map(game => (
           game.active ? (
