@@ -18,12 +18,12 @@ function Home() {
       active: true
     },
     {
-      id: 'draw',
-      name: 'Drawful (Coming Soon)',
-      desc: 'Terrible drawings, hilarious guesses.',
-      icon: '🎨',
-      active: false
-    }
+      id: 'letter-race',
+      name: 'Letter Race',
+      desc: 'Think fast. Speak faster. First to shout the word wins.',
+      icon: '🔠',
+      active: true // <--- Make sure this is true!
+    },
   ];
 
   return (
