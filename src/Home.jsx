@@ -24,6 +24,13 @@ function Home() {
       icon: '🔠',
       active: true // <--- Make sure this is true!
     },
+    {
+      id: 'word-imposter',
+      name: 'Word Imposter',
+      desc: 'Describe the secret word. Find the person who is lying.',
+      icon: '🕵️‍♂️',
+      active: true
+    },
   ];
 
   return (
