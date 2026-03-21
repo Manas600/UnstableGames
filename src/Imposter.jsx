@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from './firebase';
-import { doc, setDoc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, onSnapshot, updateDoc, deleteField } from 'firebase/firestore';
 import './App.css'; // This can stay, even if the file is empty now
 
 function Imposter() {
@@ -53,22 +53,54 @@ function Imposter() {
   };
 
   const joinGame = async () => {
-    if (!playerName || !roomCode) return alert("Enter both your name and a room code!");
+    if (!playerName || !roomCode) return alert("Enter name and room code!");
     const codeUpper = roomCode.toUpperCase();
     const gameRef = doc(db, 'games', codeUpper);
     const gameSnap = await getDoc(gameRef);
 
     if (gameSnap.exists()) {
+      const data = gameSnap.data();
+
+      // FIX 1: Check if this player name is already in the room!
+      const existingPlayerEntry = Object.entries(data.players).find(
+        ([id, p]) => p.name.toLowerCase() === playerName.toLowerCase()
+      );
+
+      if (existingPlayerEntry) {
+        // Reclaim the old identity!
+        setUserId(existingPlayerEntry[0]);
+        setRoomCode(codeUpper);
+        setCurrentScreen('lobby');
+        return;
+      }
+
+      // If they are actually new, create a new player like normal
       const newUserId = Math.random().toString(36).substring(2, 9);
       await updateDoc(gameRef, {
-        [`players.${newUserId}`]: { name: playerName, role: 'player', answer: '', isReady: false }
+        [`players.${newUserId}`]: { name: playerName, score: 0, answer: '', votedFor: null }
       });
       setUserId(newUserId);
       setRoomCode(codeUpper);
       setCurrentScreen('lobby');
     } else {
-      alert("Room not found! Check the code and try again.");
+      alert("Room not found!");
     }
+  };
+  const kickPlayer = async (targetId) => {
+    if (!window.confirm("Kick this player from the game?")) return;
+    const gameRef = doc(db, 'games', roomCode);
+
+    // This instantly deletes the player from the database object
+    await updateDoc(gameRef, {
+      [`players.${targetId}`]: deleteField()
+    });
+  };
+
+  // ADMIN OVERRIDE: Skip the answering phase
+  const forceToVoting = async () => {
+    if (!window.confirm("Force the game to the Voting Phase? Players who haven't answered will have blank answers.")) return;
+    const gameRef = doc(db, 'games', roomCode);
+    await updateDoc(gameRef, { status: 'voting' });
   };
 
   const startGame = async () => {
@@ -323,6 +355,16 @@ function Imposter() {
             <>
               <h2>Answer Submitted!</h2>
               <p>Waiting for others...</p>
+              {/* THE NEW FORCE BUTTON */}
+              {isAdmin && (
+                <button
+                  className="btn-danger"
+                  onClick={forceToVoting}
+                  style={{ marginTop: '20px' }}
+                >
+                  ⏭️ Force Proceed to Voting
+                </button>
+              )}
               <h2>{readyPlayers} / {totalPlayers} players ready.</h2>
             </>
           )}
@@ -343,10 +385,31 @@ function Imposter() {
           <h2>Players ({playersList.length})</h2>
           <ul>
             {playersList.map((player) => (
-              <li key={player.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>🟢 {player.name} {gameData.adminUid === player.id ? "(Admin)" : ""}</span>
+              <li key={player.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <span>
+                  {gameData.adminUid === player.id ? "👁️ " : "👤 "}
+                  {player.name} {gameData.adminUid === player.id ? "(Admin)" : ""}
+                </span>
+
+                {/* ADMIN CONTROLS: MAKE ADMIN & KICK */}
                 {isAdmin && player.id !== userId && (
-                  <button style={{ width: 'auto', padding: '5px 15px', fontSize: '0.9rem', marginBottom: '0' }} onClick={() => transferAdmin(player.id)}>Make Admin</button>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                      className="btn-warning"
+                      style={{ padding: '5px 15px', fontSize: '0.8rem', width: 'auto', margin: 0 }}
+                      onClick={() => transferAdmin(player.id)}
+                    >
+                      👑 Make Admin
+                    </button>
+
+                    <button
+                      className="btn-danger"
+                      style={{ padding: '5px 15px', fontSize: '0.8rem', width: 'auto', margin: 0 }}
+                      onClick={() => kickPlayer(player.id)}
+                    >
+                      🥾 Kick
+                    </button>
+                  </div>
                 )}
               </li>
             ))}

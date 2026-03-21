@@ -13,6 +13,7 @@ function WordImposter() {
     // Setup States
     const [imposterCount, setImposterCount] = useState(1);
     const [secretWord, setSecretWord] = useState('');
+    const [theme, setTheme] = useState(''); // NEW: Theme State
     const [showRules, setShowRules] = useState(false);
     const [lobbyError, setLobbyError] = useState('');
 
@@ -46,10 +47,9 @@ function WordImposter() {
             type: 'word_imposter',
             status: 'lobby',
             adminUid: newUserId,
-            settings: { imposterCount: 1, secretWord: '' },
+            settings: { imposterCount: 1, secretWord: '', theme: '' },
             caughtImposterId: null,
             players: {
-                // The creator defaults to the Admin role
                 [newUserId]: { name: playerName, role: 'admin', votedFor: null }
             }
         });
@@ -83,21 +83,21 @@ function WordImposter() {
         const gameRef = doc(db, 'games', roomCode);
         await updateDoc(gameRef, {
             adminUid: newAdminId,
-            [`players.${userId}.role`]: 'player', // Old admin becomes a normal player
-            [`players.${newAdminId}.role`]: 'admin' // New admin takes the God role
+            [`players.${userId}.role`]: 'player',
+            [`players.${newAdminId}.role`]: 'admin'
         });
     };
 
     const startGame = async () => {
-        if (!secretWord.trim()) {
-            setLobbyError("You must enter a secret word!");
+        // Ensure both fields are filled out!
+        if (!secretWord.trim() || !theme.trim()) {
+            setLobbyError("You must enter both a Secret Word and a Theme!");
             return;
         }
 
         const allIds = Object.keys(gameData.players);
-        // Exclude the Admin from the player pool!
         const playerIds = allIds.filter(id => id !== gameData.adminUid);
-        const requiredPlayers = imposterCount + 2; // Need at least 2 real players + imposters
+        const requiredPlayers = imposterCount + 2;
 
         if (playerIds.length < requiredPlayers) {
             setLobbyError(`Not enough players! You need at least ${requiredPlayers} players (excluding the Admin) for ${imposterCount} Imposter(s).`);
@@ -108,11 +108,9 @@ function WordImposter() {
         let shuffledIds = [...playerIds].sort(() => 0.5 - Math.random());
         const newPlayers = JSON.parse(JSON.stringify(gameData.players));
 
-        // Assign Imposters from the valid player pool
         for (let i = 0; i < imposterCount; i++) {
             newPlayers[shuffledIds[i]].role = 'imposter';
         }
-        // Assign Normal Players
         for (let i = imposterCount; i < shuffledIds.length; i++) {
             newPlayers[shuffledIds[i]].role = 'player';
         }
@@ -121,6 +119,7 @@ function WordImposter() {
         await updateDoc(gameRef, {
             status: 'playing',
             'settings.secretWord': secretWord.trim().toUpperCase(),
+            'settings.theme': theme.trim().toUpperCase(),
             'settings.imposterCount': imposterCount,
             players: newPlayers
         });
@@ -138,7 +137,6 @@ function WordImposter() {
 
     const processVotes = async () => {
         const voteCounts = {};
-        // Only count votes from actual players
         Object.values(gameData.players).filter(p => p.role !== 'admin').forEach(p => {
             if (p.votedFor) voteCounts[p.votedFor] = (voteCounts[p.votedFor] || 0) + 1;
         });
@@ -150,13 +148,12 @@ function WordImposter() {
                 maxVotes = count;
                 mostVotedIds = [id];
             } else if (count === maxVotes) {
-                mostVotedIds.push(id); // Tie
+                mostVotedIds.push(id);
             }
         }
 
         const gameRef = doc(db, 'games', roomCode);
 
-        // If there is a tie, or nobody voted, Imposters win by default.
         if (mostVotedIds.length !== 1) {
             await updateDoc(gameRef, { status: 'results', winner: 'Imposter', method: 'The village tied on the vote!' });
             return;
@@ -199,7 +196,6 @@ function WordImposter() {
         const gameRef = doc(db, 'games', roomCode);
         let resetPlayers = { ...gameData.players };
         for (let id in resetPlayers) {
-            // Restore proper roles for reset
             resetPlayers[id].role = id === gameData.adminUid ? 'admin' : 'player';
             resetPlayers[id].votedFor = null;
         }
@@ -207,9 +203,11 @@ function WordImposter() {
             status: 'lobby',
             caughtImposterId: null,
             'settings.secretWord': '',
+            'settings.theme': '',
             players: resetPlayers
         });
         setSecretWord('');
+        setTheme('');
         setImposterGuess('');
     };
 
@@ -222,9 +220,9 @@ function WordImposter() {
                 <div className="glass-panel" style={{ textAlign: 'left' }}>
                     <h3>How to Play:</h3>
                     <ul>
-                        <li>👁️ <strong>The Admin:</strong> Chooses the secret word and oversees the round. They do not play!</li>
+                        <li>👁️ <strong>The Admin:</strong> Chooses the secret word and theme. They do not play!</li>
                         <li>🟢 <strong>Normal Players:</strong> Receive the Secret Word on their screen.</li>
-                        <li>🔴 <strong>The Imposter:</strong> Receives NO word. They must blend in.</li>
+                        <li>🔴 <strong>The Imposter:</strong> Receives ONLY the Theme (e.g., "Person"). They must blend in!</li>
                         <li>🗣️ <strong>The Debate:</strong> Go around the room. Each person says exactly ONE WORD to describe the secret word.</li>
                         <li>🗳️ <strong>The Vote:</strong> Vote out the most suspicious person.</li>
                         <li>🚨 <strong>The Twist:</strong> If the Imposter is voted out, they get ONE chance to type the secret word. If they guess it, they steal the win!</li>
@@ -286,11 +284,15 @@ function WordImposter() {
                         <h3>Admin Setup</h3>
                         <label>Number of Imposters:</label>
                         <input type="number" min="1" value={imposterCount} onChange={(e) => setImposterCount(Number(e.target.value))} />
-                        <label>The Secret Word:</label>
-                        <input type="text" placeholder="e.g., Apple, Hospital, Batman..." value={secretWord} onChange={(e) => setSecretWord(e.target.value)} />
+
+                        <label>The Theme (For the Imposter):</label>
+                        <input type="text" placeholder="e.g., Person, Movie, Animal..." value={theme} onChange={(e) => setTheme(e.target.value)} />
+
+                        <label>The Secret Word (For the Players):</label>
+                        <input type="text" placeholder="e.g., Elon Musk, Inception, Dog..." value={secretWord} onChange={(e) => setSecretWord(e.target.value)} />
 
                         {lobbyError && <p style={{ color: '#ff4b2b', fontWeight: 'bold' }}>⚠️ {lobbyError}</p>}
-                        <button className="btn-success" onClick={startGame}>Start Game</button>
+                        <button className="btn-success" onClick={startGame} style={{ marginTop: '15px' }}>Start Game</button>
                     </div>
                 ) : (
                     <p>Waiting for Admin to set the secret word...</p>
@@ -310,9 +312,10 @@ function WordImposter() {
                     {isAdmin ? (
                         <>
                             <h3 style={{ color: '#aaa' }}>You are the Game Master!</h3>
-                            <p>The secret word you chose is:</p>
+                            <p>Secret Word:</p>
                             <h1 className="massive-answer" style={{ color: '#00f2fe' }}>{gameData.settings.secretWord}</h1>
-                            <p>Listen to the players describe it over voice chat!</p>
+                            <p>Imposter's Theme:</p>
+                            <h2 style={{ color: '#ffeb3b' }}>{gameData.settings.theme}</h2>
                         </>
                     ) : myRole === 'player' ? (
                         <>
@@ -322,8 +325,10 @@ function WordImposter() {
                         </>
                     ) : (
                         <>
-                            <h1 style={{ color: '#ff4b2b', fontSize: '3rem' }}>YOU ARE THE IMPOSTER</h1>
-                            <p style={{ fontSize: '1.2rem' }}>You have no word. Listen carefully and blend in!</p>
+                            <h1 style={{ color: '#ff4b2b', fontSize: '2.5rem' }}>YOU ARE THE IMPOSTER</h1>
+                            <h3 style={{ color: '#aaa', marginTop: '20px' }}>The Theme is:</h3>
+                            <h1 className="massive-answer" style={{ color: '#ffeb3b' }}>{gameData.settings.theme}</h1>
+                            <p style={{ fontSize: '1.2rem' }}>Blend in. Listen carefully and make a generic guess!</p>
                         </>
                     )}
                 </div>
@@ -335,7 +340,6 @@ function WordImposter() {
 
     if (gameData && gameData.status === 'voting') {
         const isAdmin = gameData.adminUid === userId;
-        // Exclude the admin so nobody can vote for them!
         const actualPlayers = Object.entries(gameData.players)
             .map(([id, data]) => ({ id, ...data }))
             .filter(p => p.id !== gameData.adminUid);
@@ -415,10 +419,11 @@ function WordImposter() {
 
                     <hr />
                     <h2 style={{ color: '#00f2fe' }}>Word: {gameData.settings.secretWord}</h2>
+                    <h4 style={{ color: '#aaa', marginTop: '0' }}>Theme: {gameData.settings.theme}</h4>
 
                     <ul style={{ textAlign: 'left', marginTop: '20px' }}>
                         {Object.entries(gameData.players)
-                            .filter(([id, p]) => p.role !== 'admin') // Hide the admin from the final lineup
+                            .filter(([id, p]) => p.role !== 'admin')
                             .map(([id, p]) => (
                                 <li key={id}>
                                     {p.name} - <strong style={{ color: p.role === 'imposter' ? '#ff4b2b' : '#aaa' }}>{p.role.toUpperCase()}</strong>
